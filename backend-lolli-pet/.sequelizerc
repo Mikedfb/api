@@ -1,9 +1,26 @@
-const { resolve } = require('path')
+import Sequelize from 'sequelize'
+import databaseConfig from '../config/database.js'
+import Veterinario from '../models/Veterinario.js'
+import Foto from '../models/Foto.js'
+import Cliente from '../models/Cliente.js'
+import Pet from '../models/Pet.js'
+import Agendamento from '../models/Agendamento.js'
+import Prontuario from '../models/Prontuario.js'
+import ProntuarioArquivo from '../models/ProntuarioArquivo.js'
 
-module.exports = {
-  config: resolve(__dirname, 'src', 'config', 'database.js'),
-  'models-path': resolve(__dirname, 'src', 'models'),
-  'migrations-path': resolve(__dirname, 'src', 'database', 'migrations'),
-  'seeders-path': resolve(__dirname, 'src', 'database', 'seeds'),
-  
-}
+const models = [Veterinario, Foto, Cliente, Pet, Prontuario, ProntuarioArquivo, Agendamento]
+
+const connection = new Sequelize(databaseConfig)
+
+models.forEach((model) => { model.init(connection) })
+models.forEach((model) => { model.associate && model.associate(connection.models) })
+
+// NOVO: Adiciona a sincronização para criar as tabelas no banco de dados.
+// O { force: false } garante que as tabelas não serão recriadas se já existirem.
+connection.sync({ force: false })
+  .then(() => {
+    console.log('Tabelas sincronizadas com sucesso.');
+  })
+  .catch(err => {
+    console.error('Erro ao sincronizar tabelas:', err);
+  });

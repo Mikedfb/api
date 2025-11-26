@@ -1,21 +1,21 @@
-version: '3.8'
-
 services:
-  # --- SERVIÇO DO BACKEND ---
+  # --- SERVIÇO DO BACKEND (API) ---
   api:
     build:
       context: ./backend-lolli-pet
       dockerfile: Dockerfile
     ports:
-      # CORREÇÃO: Mapeando a porta INTERNA 3001 para a EXTERNA 3001
-      - "3001:3001" 
+      # Mapeando a porta INTERNA 3001 para a EXTERNA 3001
+      - "3001:3001"
     volumes:
       - ./backend-lolli-pet:/app
       - /app/node_modules
     env_file:
-      - ./backend-lolli-pet/.env
+      - ./.env # Lendo variáveis do .env na raiz
+    depends_on:
+      - db
 
-  # --- SERVIÇO DO FRONTEND ---
+  # --- SERVIÇO DO FRONTEND (WEB) ---
   web:
     build:
       context: ./lolli-pet-web
@@ -26,22 +26,26 @@ services:
       - ./lolli-pet-web:/app
       - /app/node_modules
     environment:
-      # CORREÇÃO: Ajustando para a porta 3001
-    - VITE_API_URL=http://api:3001
+      # Ajustando para o nome do serviço interno 'api'
+      - VITE_API_URL=http://api:3001
 
-  # --- NSERVIÇO DE BANCO DE DADOS (MySQL) ---
+  # --- SERVIÇO DE BANCO DE DADOS (MySQL) ---
   db:
-    image: mysql:8.0 #  versão estável
+    image: mysql:8.0
     container_name: lolli-pet-db
     restart: always
     ports:
       # Mapeia a porta INTERNA 3306 (padrão MySQL) para a porta EXTERNA 3307
-      - "3307:3306" 
+      - "3309:3306"
     environment:
       # Variáveis essenciais para o MySQL
-      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD} # '4j7fzytr' 
-      MYSQL_DATABASE: ${DATABASE}               # 'lolliPet' 
-      MYSQL_USER: ${DATABASE_USERNAME}          # 'root'
+      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+      MYSQL_DATABASE: ${DATABASE}
+      MYSQL_USER: ${DATABASE_USERNAME}
     volumes:
-      # Persistência de dados: mantém os dados mesmo se o contêiner for removido
+      # CORREÇÃO CRÍTICA: Monta o volume 'db_data' no caminho correto do MySQL
       - db_data:/var/lib/mysql
+
+# --- DECLARAÇÃO DE VOLUMES ---
+volumes:
+  db_data: # Declara o volume usado pelo serviço 'db'

@@ -28,3 +28,20 @@ services:
     environment:
       # CORREÇÃO: Ajustando para a porta 3001
     - VITE_API_URL=http://api:3001
+
+  # --- NSERVIÇO DE BANCO DE DADOS (MySQL) ---
+  db:
+    image: mysql:8.0 #  versão estável
+    container_name: lolli-pet-db
+    restart: always
+    ports:
+      # Mapeia a porta INTERNA 3306 (padrão MySQL) para a porta EXTERNA 3307
+      - "3307:3306" 
+    environment:
+      # Variáveis essenciais para o MySQL
+      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD} # '4j7fzytr' 
+      MYSQL_DATABASE: ${DATABASE}               # 'lolliPet' 
+      MYSQL_USER: ${DATABASE_USERNAME}          # 'root'
+    volumes:
+      # Persistência de dados: mantém os dados mesmo se o contêiner for removido
+      - db_data:/var/lib/mysql
